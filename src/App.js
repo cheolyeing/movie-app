@@ -1,49 +1,51 @@
 import React from "react";
+import axios from "axios";
+import Movie from "./Movie";
 
 class App extends React.Component {
-  /* Component Life Cycle
-   * (1) render -> componentDidMount
-   * (2) if I call setState -> render -> componentDidUpdate
-   * (3) if I leave the page -> componentWillUnmout
-   */
-
   state = {
-    num: 0,
+    isLoading: true,
+    movies: [],
   };
 
-  add = () => {
-    this.setState((current) => ({
-      num: current.num + 1,
-    }));
-  };
-
-  minus = () => {
-    this.setState((current) => ({
-      num: current.num - 1,
-    }));
+  getMovies = async () => {
+    const {
+      data: {
+        data: { movies },
+      },
+    } = await axios.get(
+      "https://yts-proxy.now.sh/list_movies.json?sort_by=rating"
+    );
+    this.setState({ movies, isLoading: false });
   };
 
   componentDidMount() {
-    console.log("Component rendered");
-  }
-
-  componentDidUpdate() {
-    console.log("I just updated");
-  }
-
-  componentWillUnmount() {
-    // 컴포넌트가 죽을때 사용됨.
-    console.log("Goodbye, world");
+    this.getMovies();
   }
 
   render() {
-    console.log("I'm rendering");
+    const { isLoading, movies } = this.state;
     return (
-      <div>
-        <h1>The number is {this.state.num}</h1>
-        <button onClick={this.add}>Add</button>
-        <button onClick={this.minus}>Minus</button>
-      </div>
+      <section class="container">
+        {isLoading ? (
+          <div class="loader">
+            <span class="loader__txt">Loading...</span>
+          </div>
+        ) : (
+          <div class="movies">
+            {movies.map((movie) => (
+              <Movie
+                key={movie.id}
+                id={movie.id}
+                year={movie.year}
+                title={movie.title}
+                summary={movie.summary}
+                poster={movie.medium_cover_image}
+              />
+            ))}
+          </div>
+        )}
+      </section>
     );
   }
 }
